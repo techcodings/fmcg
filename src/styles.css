@@ -921,6 +921,90 @@ a {
 .query-bar:focus-within::before {
   transform: translateX(130%);
 }
+/* HEADER LAYOUT */
+.header {
+  height: var(--header-height, 64px);
+  display: flex;
+  align-items: center;
+  padding: 0 1.6rem;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.8);
+  background: rgba(2, 6, 23, 0.9);
+  backdrop-filter: blur(14px);
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+/* center title between left icon and right button */
+.header-title-wrap {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.header-title {
+  display: flex;
+  justify-content: center;
+}
+
+/* existing pill can stay, just make sure it looks nice */
+.header-title-pill {
+  padding: 0.4rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: radial-gradient(circle at 0% 0%,
+    rgba(99, 102, 241, 0.35),
+    rgba(15, 23, 42, 0.98));
+  color: #e5edff;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Download button (right side) */
+.header-download-btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  background: linear-gradient(120deg, #6366f1, #22c55e);
+  color: #ffffff;
+  border: 1px solid transparent;
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.85);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+}
+
+.header-download-btn:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 14px 30px rgba(79, 70, 229, 0.95);
+  filter: brightness(1.05);
+}
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 1rem;
+  }
+
+  .header-download-btn {
+    padding: 0.35rem 0.9rem;
+    font-size: 0.78rem;
+  }
+
+  .header-title-wrap {
+    margin-left: 0.4rem; /* small gap after menu icon */
+  }
+}
 
 .query-bar-icon {
   font-size: 1.6rem;
