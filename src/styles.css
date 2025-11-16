@@ -17,6 +17,10 @@
   --border-subtle: rgba(148, 163, 184, 0.15);
   --border-strong: rgba(148, 163, 184, 0.4);
 
+  /* extra tokens used below */
+  --border-color: rgba(148, 163, 184, 0.2);
+  --border-color-light: rgba(148, 163, 184, 0.45);
+
   --accent-blue: #3b82f6;
   --accent-blue-soft: rgba(59, 130, 246, 0.2);
   --accent-purple: #8b5cf6;
@@ -30,6 +34,8 @@
   --text-muted: #64748b;
   --text-disabled: #475569;
   --text-strong: #ffffff;
+  --text-secondary: #94a3b8;
+  --text-white: #ffffff;
 
   --success: var(--accent-green);
   --warning: var(--accent-yellow);
@@ -46,6 +52,7 @@
   --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.65);
   --shadow-card: 0 14px 35px rgba(15, 23, 42, 0.55);
   --blur-strong: blur(18px);
+  --glass-blur: blur(18px);
 }
 
 /* Reset / base */
@@ -184,12 +191,12 @@ a {
 
 /* ==== MAIN CONTENT SPACING ==== */
 .page-content {
-  padding: 1rem 2rem 1.5rem;              /* less vertical padding */
-  padding-top: calc(var(--header-height) + 0.25rem); /* almost touching header */
+  padding: 1rem 2rem 1.5rem;
+  /* very close under header */
+  padding-top: calc(var(--header-height) + 0.25rem);
   max-width: 1600px;
   margin: 0 auto;
 }
-
 
 /* Mobile sidebar overlay */
 .sidebar-overlay {
@@ -403,24 +410,21 @@ a {
 .header {
   height: var(--header-height);
   background: var(--bg-header);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
-  justify-content: center;           /* center by default */
+  justify-content: center;
   padding: 0 1.75rem;
   position: sticky;
   top: 0;
   z-index: 900;
   backdrop-filter: var(--glass-blur);
-  transition:
-    left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* mobile keeps the burger on the left, title centered */
 .header.mobile {
-  left: 0 !important;
-  width: 100% !important;
+  left: 0;
+  width: 100%;
   justify-content: flex-start;
 }
 
@@ -433,19 +437,21 @@ a {
 
 /* pill styling for “FMCG AI STUDIO” */
 .header-title-pill {
+  position: relative;
   padding: 0.4rem 1.4rem;
   border-radius: 999px;
   border: 1px solid var(--border-color-light);
-  background: radial-gradient(circle at top left,
+  background: radial-gradient(
+    circle at top left,
     rgba(59, 130, 246, 0.3),
-    rgba(10, 13, 24, 0.95));
+    rgba(10, 13, 24, 0.95)
+  );
   color: var(--text-secondary);
   font-size: 0.82rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
 }
-
 
 .header-title-pill::before {
   content: '';
@@ -473,20 +479,21 @@ a {
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-white);
-   /* almost no gap */
+  line-height: 1.25;
+  margin-bottom: 0.15rem;   /* very small gap */
 }
 
 .dashboard-page .page-subtitle {
   font-size: 1rem;
   color: var(--text-secondary);
-  margin-bottom: 0.2rem;     /* very small gap before cards */
+  line-height: 1.4;
+  margin-bottom: 0.75rem;   /* small clean gap before cards */
 }
 
 /* make sure the grid doesn’t add extra top space */
 .dashboard-page .stat-grid {
-    margin-bottom: -10.1rem;  
+  margin-top: 0;
 }
-
 
 .loading-state,
 .empty-state {
@@ -523,9 +530,8 @@ a {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.25rem;
-  margin-bottom: 1.6rem;          /* was 2rem */
+  margin-bottom: 1.6rem;
 }
-
 
 .stat-box {
   position: relative;
@@ -1151,16 +1157,20 @@ input[type='range']::-moz-range-thumb {
   .output-grid {
     grid-template-columns: 1fr;
   }
-   .dashboard-page .page-subtitle {
-    margin-bottom: -11.2rem;
+
+  .dashboard-page .page-title {
+    font-size: 1.8rem;
+  }
+
+  .dashboard-page .page-subtitle {
+    margin-bottom: 0.6rem;
   }
 }
 
 @media (max-width: 768px) {
   .page-content {
     padding-inline: 1rem;
-    /* tighter spacing on phones */
-    padding-top: calc(var(--header-height) + 0.4rem);
+    padding-top: calc(var(--header-height) + 0.3rem);
   }
 
   .header {
@@ -1171,9 +1181,12 @@ input[type='range']::-moz-range-thumb {
     justify-content: center;
   }
 
-  /* reduce bottom space after subtitle on mobile */
+  .dashboard-page .page-title {
+    font-size: 1.5rem;
+  }
+
   .dashboard-page .page-subtitle {
-    margin-bottom: -12.2rem;
+    margin-bottom: 0.5rem;
   }
 }
 
@@ -1191,7 +1204,96 @@ input[type='range']::-moz-range-thumb {
     padding-inline: 1rem;
     font-size: 0.78rem;
   }
+
+  .dashboard-page .page-title {
+    font-size: 1.3rem;
+  }
+
   .dashboard-page .page-subtitle {
-    margin-bottom: -32.2rem;
+    margin-bottom: 0.4rem;
+  }
+}
+/* HEADER LAYOUT */
+.header {
+  height: var(--header-height, 64px);
+  display: flex;
+  align-items: center;
+  padding: 0 1.6rem;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.8);
+  background: rgba(2, 6, 23, 0.9);
+  backdrop-filter: blur(14px);
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+/* center title between left icon and right button */
+.header-title-wrap {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.header-title {
+  display: flex;
+  justify-content: center;
+}
+
+/* existing pill can stay, just make sure it looks nice */
+.header-title-pill {
+  padding: 0.4rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: radial-gradient(circle at 0% 0%,
+    rgba(99, 102, 241, 0.35),
+    rgba(15, 23, 42, 0.98));
+  color: #e5edff;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Download button (right side) */
+.header-download-btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  background: linear-gradient(120deg, #6366f1, #22c55e);
+  color: #ffffff;
+  border: 1px solid transparent;
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.85);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+}
+
+.header-download-btn:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 14px 30px rgba(79, 70, 229, 0.95);
+  filter: brightness(1.05);
+}
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 1rem;
+  }
+
+  .header-download-btn {
+    padding: 0.35rem 0.9rem;
+    font-size: 0.78rem;
+  }
+
+  .header-title-wrap {
+    margin-left: 0.4rem; /* small gap after menu icon */
   }
 }
