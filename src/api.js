@@ -3,8 +3,8 @@ import OpenAI from "openai";
 
 const client = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  // For this assignment/demo we call OpenAI from the browser.
-  // For production, move all OpenAI calls to a backend.
+  // Demo only – for production move all OpenAI calls to a backend.
+  // (Browser key is not safe.)
   dangerouslyAllowBrowser: true,
 });
 
@@ -15,6 +15,13 @@ export async function generateProductIdea({ query, price, ecoPackage }) {
   const systemPrompt = `
 You are an AI product ideation assistant for FMCG brands.
 
+Your job is to:
+- Propose new product variants and concepts (flavors, packs, packaging styles).
+- Estimate adoption probability and expected sales impact.
+- Align ideas with consumer sentiment and emerging trends.
+- Highlight competitive differentiation and white-space gaps.
+- Provide strategic recommendations and "what-if" simulation notes.
+
 You MUST respond with STRICT VALID JSON only.
 No markdown, no headings, no bullet markers, no hashes (#), no asterisks (*).
 
@@ -24,21 +31,21 @@ Use this JSON shape EXACTLY:
   "name": string,
   "shortDescription": string,
   "mockupLabel": string,
-  "adoptionProbability": number,           // 0-100
-  "forecastedSalesUnitsYear1": number,     // integer
-  "reasoning": string[],                   // 3-6 short steps
+  "adoptionProbability": number,
+  "forecastedSalesUnitsYear1": number,
+  "reasoning": string[],
 
   "variants": [
     {
       "name": string,
       "description": string,
-      "adoptionProbability": number,       // 0-100
-      "forecastedRevenueLabel": string     // e.g. "$24–28 Cr in year 1"
+      "adoptionProbability": number,
+      "forecastedRevenueLabel": string
     }
   ],
 
-  "sentimentMatchScore": number,           // 0-100
-  "trendAlignmentScore": number,           // 0-100
+  "sentimentMatchScore": number,
+  "trendAlignmentScore": number,
   "buzzPredictionLabel": string,
 
   "consumerPainPointsCovered": string[],
@@ -58,8 +65,14 @@ User brief: ${query}
 Target price: ${price} USD
 Eco-friendly packaging target: ${ecoPackage}%
 
-You have access to consumer trends, reviews, social chatter and competitor launches conceptually,
-but DO NOT describe any training process – only use them as background reasoning.
+Assume you conceptually have access to:
+- Product images (own + competitor packaging),
+- Consumer reviews and social media trends,
+- Historical sales and category performance,
+- Industry reports, competitor launches and macro trends.
+
+Do NOT describe any training process.
+Use these only as background reasoning to support your outputs.
 
 Return ONLY the JSON object. No explanation text.
 `;
@@ -75,21 +88,50 @@ Return ONLY the JSON object. No explanation text.
 
   const text = completion.choices[0]?.message?.content ?? "";
 
-  let data;
   try {
-    data = JSON.parse(text);
+    return JSON.parse(text);
   } catch (err) {
     console.error("Failed to parse AI JSON for product idea:", text, err);
     throw new Error("AI returned an invalid format for product idea");
   }
+}
 
-  return data;
+/**
+ * OPTIONAL – Feature B image mockup
+ * Generate a packaging-style image for the concept.
+ */
+export async function generateProductMockup({ name, shortDescription }) {
+  // You need a model that supports images in your OpenAI account
+  const prompt = `
+High-end 3D render of FMCG packaging for:
+"${name}". ${shortDescription}
+
+Style: realistic product photo on dark gradient background,
+neon green accent, premium sparkling water / beverage packaging,
+front view, centered, no text other than brand elements.
+`;
+
+  const result = await client.images.generate({
+    model: "dall-e-3",       // or "dall-e-3" if that's what you have
+    prompt,
+    size: "1024x1024",
+  });
+
+  const url = result.data?.[0]?.url;
+  if (!url) throw new Error("No image URL returned for product mockup");
+  return url;
 }
 
 /**
  * Feature A – Multimodal Trend Forecasting Agent
  */
-export async function generateTrendForecast() {
+export async function generateTrendForecast(options = {}) {
+  const {
+    category = "FMCG beverages (carbonated drinks)",
+    region = "urban India",
+    timeHorizon = "next 5 weeks",
+  } = options;
+
   const systemPrompt = `
 You are an AI trend forecasting assistant for FMCG beverage companies.
 
@@ -111,7 +153,7 @@ Use this JSON structure exactly:
   },
   "forecastSeries": [
     {
-      "name": string,             // e.g. "Wk 1"
+      "name": string,
       "Citrus Soda": number,
       "Berry Blast": number
     }
@@ -122,35 +164,29 @@ Use this JSON structure exactly:
     { "name": "Negative", "value": number }
   ],
   "topTrends": [
-    { "name": string, "probability": number }   // 0-100
+    { "name": string, "probability": number }
   ],
-  "recommendations": [
-    string
-  ],
+  "recommendations": [ string ],
   "pricePromotionInsights": [
     {
-      "scenario": string,                // e.g. "10% discount on Citrus Soda"
-      "expectedLiftPercent": number,     // 0-100
+      "scenario": string,
+      "expectedLiftPercent": number,
       "notes": string
     }
   ],
   "competitorInsights": [
     {
-      "event": string,                   // competitor launch / news
-      "impact": string                   // short impact description
+      "event": string,
+      "impact": string
     }
   ],
-  "alerts": [
-    string                               // short alerts: sudden trend shift, low stock, etc.
-  ]
+  "alerts": [ string ]
 }
-
-All numbers should be realistic but synthetic; do not describe training.
 `;
 
   const userPrompt = `
-Prepare a realistic 5-week SKU demand forecast for two SKUs:
-"Citrus Soda" and "Berry Blast" in urban India (Q2 season).
+Prepare a realistic ${timeHorizon} SKU demand forecast for two SKUs:
+"Citrus Soda" and "Berry Blast" in ${region}, within the ${category} category.
 
 Include sentiment breakdown, top trends, price & promotion insights,
 competitor insights, and alerts as described in the JSON schema.
@@ -168,15 +204,12 @@ Return ONLY the JSON object, nothing else.
 
   const text = completion.choices[0]?.message?.content ?? "";
 
-  let data;
   try {
-    data = JSON.parse(text);
+    return JSON.parse(text);
   } catch (err) {
     console.error("Failed to parse AI JSON for trend forecast:", text, err);
     throw new Error("AI returned an invalid format for trend forecast");
   }
-
-  return data;
 }
 
 /**
@@ -204,23 +237,13 @@ Use this JSON structure exactly:
     "hotSkuChangeLabel": string
   },
   "salesData": [
-    {
-      "name": string,       // e.g. "Jan", "Feb"
-      "revenue": number
-    }
+    { "name": string, "revenue": number }
   ],
   "topTrends": [
-    {
-      "name": string,
-      "probability": number   // 0-100
-    }
+    { "name": string, "probability": number }
   ],
-  "aiSummaryBullets": [
-    string
-  ],
-  "alerts": [
-    string
-  ]
+  "aiSummaryBullets": [ string ],
+  "alerts": [ string ]
 }
 `;
 
@@ -242,13 +265,10 @@ Return ONLY the JSON object.
 
   const text = completion.choices[0]?.message?.content ?? "";
 
-  let data;
   try {
-    data = JSON.parse(text);
+    return JSON.parse(text);
   } catch (err) {
     console.error("Failed to parse AI JSON for dashboard overview:", text, err);
     throw new Error("AI returned an invalid format for dashboard overview");
   }
-
-  return data;
 }
