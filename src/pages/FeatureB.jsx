@@ -5,17 +5,17 @@ import { FiCpu, FiSend, FiZap } from "react-icons/fi";
 import { FaFileImage } from "react-icons/fa";
 import {
   generateProductIdea,
-  generateProductMockup, // 👈 NEW
+  generateProductMockup,
 } from "../api.js";
 
 const FeatureB = () => {
-  // Chat messages
+  // Chat messages – shorter, more “system message” style
   const [messages, setMessages] = useState([
     {
       id: 0,
       role: "assistant",
       content:
-        "Hi, I’m your AI Product Ideation Agent. Tell me what kind of FMCG product you’re thinking about – for example:\n\n“Suggest a new energy drink flavor for Gen Z in Southeast Asia with eco-friendly packaging.”",
+        "Hi, I’m your AI Product Ideation Agent.\n\nDescribe the FMCG product you want to launch and I’ll turn it into a concept with numbers and a packaging mockup.",
     },
   ]);
 
@@ -28,7 +28,7 @@ const FeatureB = () => {
   const [mockupUrl, setMockupUrl] = useState(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
 
-  // Scenario sliders
+  // Scenario sliders (kept for future use)
   const [price, setPrice] = useState(5.99); // USD
   const [ecoPackage, setEcoPackage] = useState(75); // %
 
@@ -38,69 +38,74 @@ const FeatureB = () => {
     out: { opacity: 0, y: -20 },
   };
 
-  // Turn JSON idea into ChatGPT-style text message
+  // Quick example prompts (chips under the intro)
+  const quickPrompts = [
+    "Suggest a new energy drink flavor for Gen Z in Southeast Asia with eco-friendly packaging.",
+    "Give me a low-sugar biscuit concept for working professionals in India.",
+    "Propose a premium cold coffee drink for college students with recyclable bottles.",
+  ];
+
   // Turn JSON idea into display text (no markdown like ** or ##)
-const formatIdeaToMessage = (ideaObj) => {
-  if (!ideaObj) return "I couldn’t generate a valid product idea this time.";
+  const formatIdeaToMessage = (ideaObj) => {
+    if (!ideaObj) return "I couldn’t generate a valid product idea this time.";
 
-  const adoption =
-    typeof ideaObj.adoptionProbability === "number"
-      ? `${ideaObj.adoptionProbability.toFixed(1)}%`
-      : "—";
+    const adoption =
+      typeof ideaObj.adoptionProbability === "number"
+        ? `${ideaObj.adoptionProbability.toFixed(1)}%`
+        : "—";
 
-  const sales =
-    typeof ideaObj.forecastedSalesUnitsYear1 === "number"
-      ? `~${ideaObj.forecastedSalesUnitsYear1.toLocaleString()} units in year 1`
-      : "—";
+    const sales =
+      typeof ideaObj.forecastedSalesUnitsYear1 === "number"
+        ? `~${ideaObj.forecastedSalesUnitsYear1.toLocaleString()} units in year 1`
+        : "—";
 
-  const sentiment =
-    typeof ideaObj.sentimentMatchScore === "number"
-      ? `${ideaObj.sentimentMatchScore.toFixed(1)}%`
-      : "—";
+    const sentiment =
+      typeof ideaObj.sentimentMatchScore === "number"
+        ? `${ideaObj.sentimentMatchScore.toFixed(1)}%`
+        : "—";
 
-  const trend =
-    typeof ideaObj.trendAlignmentScore === "number"
-      ? `${ideaObj.trendAlignmentScore.toFixed(1)}%`
-      : "—";
+    const trend =
+      typeof ideaObj.trendAlignmentScore === "number"
+        ? `${ideaObj.trendAlignmentScore.toFixed(1)}%`
+        : "—";
 
-  const variantsText =
-    Array.isArray(ideaObj.variants) && ideaObj.variants.length > 0
-      ? ideaObj.variants
-          .slice(0, 3)
-          .map((v) => {
-            const vAdopt =
-              typeof v.adoptionProbability === "number"
-                ? `${v.adoptionProbability.toFixed(1)}%`
-                : "—";
-            return `• ${v.name} – ${v.description} (Adoption ~${vAdopt}, ${v.forecastedRevenueLabel})`;
-          })
-          .join("\n")
-      : "• (No specific variants returned.)";
+    const variantsText =
+      Array.isArray(ideaObj.variants) && ideaObj.variants.length > 0
+        ? ideaObj.variants
+            .slice(0, 3)
+            .map((v) => {
+              const vAdopt =
+                typeof v.adoptionProbability === "number"
+                  ? `${v.adoptionProbability.toFixed(1)}%`
+                  : "—";
+              return `• ${v.name} – ${v.description} (Adoption ~${vAdopt}, ${v.forecastedRevenueLabel})`;
+            })
+            .join("\n")
+        : "• (No specific variants returned.)";
 
-  const strategyBullets = (ideaObj.strategicRecommendations || [])
-    .slice(0, 3)
-    .map((s) => `• ${s}`)
-    .join("\n");
+    const strategyBullets = (ideaObj.strategicRecommendations || [])
+      .slice(0, 3)
+      .map((s) => `• ${s}`)
+      .join("\n");
 
-  return [
-    `Concept: ${ideaObj.name}`,
-    ideaObj.shortDescription,
-    "",
-    `Adoption: ~${adoption} | Forecasted sales: ${sales}`,
-    `Sentiment match: ${sentiment} | Trend alignment: ${trend}`,
-    "",
-    "Suggested variants",
-    variantsText,
-    "",
-    "Why this makes sense (high level):",
-    ...(ideaObj.reasoning || []).slice(0, 4).map((r) => `• ${r}`),
-    "",
-    strategyBullets ? "Go-to-market highlights:\n" + strategyBullets : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-};
-
+    return [
+      `Concept: ${ideaObj.name}`,
+      ideaObj.shortDescription,
+      "",
+      `Adoption: ~${adoption} | Forecasted sales: ${sales}`,
+      `Sentiment match: ${sentiment} | Trend alignment: ${trend}`,
+      "",
+      "Suggested variants",
+      variantsText,
+      "",
+      "Why this makes sense (high level):",
+      ...(ideaObj.reasoning || []).slice(0, 4).map((r) => `• ${r}`),
+      "",
+      strategyBullets ? "Go-to-market highlights:\n" + strategyBullets : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -137,7 +142,7 @@ const formatIdeaToMessage = (ideaObj) => {
         { id: prev.length, role: "assistant", content: aiMessageText },
       ]);
 
-      // 3) (Optional) Generate image mockup
+      // 3) Generate image mockup (demo)
       try {
         setIsImageLoading(true);
         const url = await generateProductMockup({
@@ -169,6 +174,7 @@ const formatIdeaToMessage = (ideaObj) => {
     }
   };
 
+  // (Kept for future slider use – currently hidden in UI)
   const adjustedAdoption = (() => {
     const base =
       idea && typeof idea.adoptionProbability === "number"
@@ -176,10 +182,9 @@ const formatIdeaToMessage = (ideaObj) => {
         : 70;
     const ecoBonus = (ecoPackage - 75) / 10;
     const pricePenalty = (price - 5.99) * 2;
-    return Math.max(
-      0,
-      Math.min(100, base + ecoBonus - pricePenalty)
-    ).toFixed(1);
+    return Math.max(0, Math.min(100, base + ecoBonus - pricePenalty)).toFixed(
+      1
+    );
   })();
 
   return (
@@ -192,24 +197,40 @@ const formatIdeaToMessage = (ideaObj) => {
       className="feature-b-page"
     >
       <div className="page-header">
-        <h1>AI Product Ideation Agent</h1>
+        <div>
+          <h1>AI Product Ideation Agent</h1>
+          <p className="page-subtitle">
+            Chat with an AI R&amp;D partner that turns your FMCG briefs into
+            launch-ready concepts.
+          </p>
+        </div>
       </div>
 
+      {/* Top strip like ChatGPT – short and clean */}
       <div className="featureb-intro">
+        <div className="featureb-pill">
+          <FiCpu />
+          <span>Describe a product you want to launch. I’ll handle the rest.</span>
+        </div>
         <p>
-          This agent helps FMCG teams design{" "}
-          <strong>new products and variants</strong> that are likely to win in
-          the market. It pretends to use product images (CV), reviews & social
-          media (NLP), historical sales (tabular) and industry reports (RAG) –
-          but for this demo the numbers are synthetic.
+          Behind the scenes the demo imagines using product images, reviews,
+          sales data and industry reports – but here the numbers are synthetic,
+          just to show the workflow.
         </p>
-        <p>
-          Ask questions like{" "}
-          <span className="featureb-example">
-            “Suggest a spicy mango snack for teenagers in India with
-            eco-friendly packaging.”
-          </span>
-        </p>
+
+        <div className="featureb-prompts">
+          {quickPrompts.map((prompt, idx) => (
+            <button
+              key={idx}
+              type="button"
+              className="featureb-prompt-chip"
+              onClick={() => setInput(prompt)}
+            >
+              {idx === 0 && "⚡ "}
+              {prompt}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="featureb-layout">
@@ -303,8 +324,8 @@ const formatIdeaToMessage = (ideaObj) => {
             <div className="chat-hint-row">
               <span className="chat-hint">
                 <FiZap />
-                Demo: AI imagines it’s using images, reviews, sales and reports
-                behind the scenes.
+                Demo only – AI imagines images, reviews, sales & reports behind
+                the scenes.
               </span>
             </div>
           </form>
@@ -316,15 +337,15 @@ const formatIdeaToMessage = (ideaObj) => {
           )}
         </div>
 
-        {/* RIGHT: Insights & sliders */}
+        {/* RIGHT: Insights & snapshot (unchanged layout) */}
         <div className="side-column">
           {!idea && (
             <div className="info-card side-placeholder">
-              <h3 className="chart-card-title">Idea details</h3>
+              <h3 className="chart-card-title">Concept snapshot</h3>
               <p className="info-text">
-                When you send a brief, this panel will show adoption, sales,
-                pain points, competition, and{" "}
-                <strong>what-if sliders</strong> for the latest concept.
+                Once you send a brief, this panel will show a quick packaging
+                mockup plus adoption, sales and other key signals for the latest
+                concept.
               </p>
             </div>
           )}
@@ -386,87 +407,7 @@ const formatIdeaToMessage = (ideaObj) => {
                 </div>
               </div>
 
-              {/* <div className="slider-card">
-                <h3 className="chart-card-title">What-If Scenario Sliders</h3>
-
-                <div className="slider-group">
-                  <div className="slider-label">
-                    <span className="slider-label-name">
-                      Price Point (USD)
-                    </span>
-                    <span className="slider-label-value">
-                      ${price.toFixed(2)}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="2.99"
-                    max="9.99"
-                    step="0.5"
-                    value={price}
-                    onChange={(e) => setPrice(parseFloat(e.target.value))}
-                  />
-                </div>
-
-                <div className="slider-group">
-                  <div className="slider-label">
-                    <span className="slider-label-name">
-                      Eco-friendly Packaging %
-                    </span>
-                    <span className="slider-label-value">{ecoPackage}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="5"
-                    value={ecoPackage}
-                    onChange={(e) =>
-                      setEcoPackage(parseInt(e.target.value, 10))
-                    }
-                  />
-                </div>
-
-                <p className="slider-note">
-                  New simulated adoption (demo):{" "}
-                  <span className="slider-note-value">
-                    ~{adjustedAdoption}%
-                  </span>
-                </p>
-
-                <div className="slider-meta-grid">
-                  <div>
-                    <h4 className="chart-card-subtitle">
-                      Cannibalization Risk
-                    </h4>
-                    <p className="slider-meta-text">
-                      {idea.cannibalizationRiskLabel || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="chart-card-subtitle">
-                      Sustainability Alignment
-                    </h4>
-                    <p className="slider-meta-text">
-                      {idea.sustainabilityAlignmentLabel || "—"}
-                    </p>
-                  </div>
-                </div>
-
-                {Array.isArray(idea.simulationNotes) &&
-                  idea.simulationNotes.length > 0 && (
-                    <div style={{ marginTop: "1.25rem" }}>
-                      <h4 className="chart-card-subtitle">
-                        Simulation Notes
-                      </h4>
-                      <ul className="reasoning-list">
-                        {idea.simulationNotes.map((line, idx) => (
-                          <li key={idx}>{line}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-              </div> */}
+              {/* Sliders kept in code, can be re-enabled when you want */}
             </>
           )}
         </div>
